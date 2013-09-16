@@ -25,6 +25,13 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-$plugin->version   = 2013072900;        // The current plugin version (Date: YYYYMMDDXX)
+$plugin->version   = 2013091600;        // The current plugin version (Date: YYYYMMDDXX)
 $plugin->requires  = 2012110900;        // Requires this Moodle version
 $plugin->component = 'report_forumgraph'; // Full name of the plugin (used for diagnostics)
+
+$plugin->release   = '2.4.1 (Build - 2013091600)';
+$plugin->maturity  = 'MATURITY_ALPHA';
+
+$plugin->dependencies = array(
+    'mod_forum' => ANY_VERSION
+);

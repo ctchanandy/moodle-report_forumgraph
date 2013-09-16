@@ -73,20 +73,22 @@ function report_forumgraph_get_category_courses($category, &$visible_courses, &$
             }
             report_forumgraph_get_category_courses($categories[$i]->id, $visible_courses, $course_names);
         }
-    } else {
+    }/* else {
+        $usearr = array();
+        $usearr[0] = new stdClass();
         // courses in the first level
         if ($courses = get_courses($category, 'c.sortorder ASC', 'c.id,c.sortorder,c.visible,c.fullname,c.shortname,c.summary')) {
-            $usearr[$i]->courses = array();
+            $usearr[0]->courses = array();
             foreach ($courses as $course) {
                 $context = get_context_instance(CONTEXT_COURSE, $course->id);
                 if (has_capability('moodle/course:view', $context)) {
-                    $usearr[$i]->courses[] = $course;
+                    $usearr[0]->courses[] = $course;
                     $visible_courses[] = $course->id;
                     $course_names[$course->id] = $course->fullname;
                 }
             }
         }
-    }
+    }*/
 }
 
 /**
@@ -140,7 +142,8 @@ function report_forumgraph_get_forum_nodes_edges($fid) {
                 $count = 0;
                 foreach ($posts as $post) {
                     $author = $DB->get_record('user', array('id'=>$post->userid));
-                    $authorrole = $DB->get_field('role_assignments', 'roleid', array('userid'=>$post->userid, 'contextid'=>$context->id));
+                    $sql = "SELECT roleid FROM {role_assignments} WHERE userid = :userid AND contextid = :contextid GROUP BY userid";
+                    $authorrole = $DB->get_field_sql($sql, array('userid'=>$post->userid, 'contextid'=>$context->id));
                     
                     // nodes array
                     if (!isset($nodes[$author->id])) {
@@ -207,8 +210,8 @@ function report_forumgraph_create_json($nodes, $edges, $uid_mapping) {
     }
     $json .= '],';
     
-    $lastid = end(array_keys($edges));
-    reset($edges);
+    $edges_keys = array_keys($edges);
+    $lastid = end($edges_keys);
     $json .= '"links":[';
     foreach ($edges as $idpair=>$value) {
         $pair = explode('_', $idpair);

@@ -29,8 +29,6 @@ require_once($CFG->libdir.'/adminlib.php');
 
 $PAGE->requires->js('/report/forumgraph/d3.v3.min.js');
 
-require_login();
-
 $school = optional_param('school', 0, PARAM_INT);
 $course = optional_param('course', 0, PARAM_INT);
 $forum = optional_param('forum', 0, PARAM_INT);
@@ -109,11 +107,11 @@ $forumoptions = report_forumgraph_get_forumoptions($course);
 $forummenu = html_writer::select($forumoptions, "forum", $forum, get_string('choose', 'report_forumgraph'));
 
 // Print the header.
-$selectedcoursename = $course ? ': '.$coursenames[$course] : '';
+$displaycoursename = isset($coursenames[$course]) ? $coursenames[$course] : '---';
 $PAGE->set_url('/report/forumgraph/index.php', $params);
 $PAGE->set_pagelayout('report');
-$PAGE->set_title(get_string('forumgraph', 'report_forumgraph').$selectedcoursename);
-$PAGE->set_heading(get_string('forumgraph', 'report_forumgraph').$selectedcoursename);
+$PAGE->set_title(get_string('forumgraph', 'report_forumgraph').$displaycoursename);
+$PAGE->set_heading(get_string('forumgraph', 'report_forumgraph').$displaycoursename);
 
 echo $OUTPUT->header();
 
@@ -242,6 +240,10 @@ if (!empty($school) && !empty($course) && !empty($forum)) {
     echo $OUTPUT->box_end();
 }
 
-$PAGE->requires->js_init_call('M.report_forumgraph.init', array($forum, $cm->id, $course));
+$js_course = $course ? $course : 0;
+$js_cmid   = isset($cm) ? $cm->id : 0;
+$js_forum  = $forum ? $forum : 0;
+
+$PAGE->requires->js_init_call('M.report_forumgraph.init', array($js_forum, $js_cmid, $js_course));
 
 echo $OUTPUT->footer();
