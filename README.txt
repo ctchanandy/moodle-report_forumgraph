@@ -1,7 +1,7 @@
 Forum Graph Report for Moodle
 -------------------------------------
 
-=ABOUT=
+===ABOUT===
 The Forum Graph Report analyse interactions in a single Forum activity and create a force-directed graph with the following features:
 - Each node is a single user (node size depends on the no. of posts by the user).
 - Each edge represent the interaction between 2 users (i.e. a user replied to another user post). Thickness indicating the no. of replies and arrow indicating who was repling.
@@ -12,14 +12,14 @@ The Forum Graph Report analyse interactions in a single Forum activity and creat
 - Click on a node and a new window will popup showing the log (report_log in core Moodle) of the user posting/replying activities in the forum.
 - A table summarising the total no. of discussions and replies in the forum, as well as the top three user who post the most.
 
-=REMARKs=
-The implementation of this report is in its early stage and it may have problems when it is installed in your Moodle. It was tested in Moodle 2.4 but it should work on Moodle 2.x envirnoment in general.
+===REMARKS===
+The implementation of this report is in its early stage and it may have problems when it is installed in your Moodle. It was tested in Moodle 2.6 as of Feb 2014.
 
-One known problem is that courses not in any course categories cannot be selected now.
+One known problem is that courses not in any course categories cannot be selected now. Also it may not work on large forum with lots of posts.
 
 Export graph as PDF/PNG is not supported now, it can only be saved as SVG file using browsers like Google Chrome.
 
-=CREDITS=
+===CREDITS===
 Andy Chan <ctchan.andy@gmail.com>, Programmer, CITE (http://www.cite.hku.hk)
 
 =LINKS=

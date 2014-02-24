@@ -22,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once('../../config.php');
+require('../../config.php');
 require_once($CFG->dirroot.'/report/forumgraph/lib.php');
 
 require_login();
@@ -32,7 +32,7 @@ $category = required_param('category', PARAM_INT);
 $visible_courses = array();
 $course_names = array();
 
-report_forumgraph_get_category_courses($category, &$visible_courses, &$course_names);
+report_forumgraph_get_category_courses($category, $visible_courses, $course_names);
 
 $return = '';
 // clear the list anyway

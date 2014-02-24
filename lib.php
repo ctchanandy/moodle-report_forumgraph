@@ -28,12 +28,36 @@ require_once("$CFG->libdir/adminlib.php");
 require_once($CFG->dirroot.'/course/lib.php');
 
 /**
+ * Get all child categories by the given parent category id
+ * Replace the now deprecated get_child_categories()
+ *
+ * @param int $parentid id of the parent category to check
+ * @return array all child categories
+ */
+function report_forumgraph_get_child_categories($parentid) {
+    global $DB;
+    $rv = array();
+    $sql = context_helper::get_preload_record_columns_sql('ctx');
+    $records = $DB->get_records_sql("SELECT c.*, $sql FROM {course_categories} c ".
+            "JOIN {context} ctx on ctx.instanceid = c.id AND ctx.contextlevel = ? WHERE c.parent = ? ORDER BY c.sortorder",
+            array(CONTEXT_COURSECAT, $parentid));
+    foreach ($records as $category) {
+        context_helper::preload_from_record($category);
+        if (!$category->visible && !has_capability('moodle/category:viewhiddencategories', context_coursecat::instance($category->id))) {
+            continue;
+        }
+        $rv[] = $category;
+    }
+    return $rv;
+}
+
+/**
  * Get all first level course categories for use in dropdown list
  *
  * @return array top level course categories
  */
 function report_forumgraph_get_schooloptions() {
-    $categories = get_child_categories(0);
+    $categories = report_forumgraph_get_child_categories(0);
     $schooloptions = array();
     if (!empty($categories)) {
         foreach ($categories as $category) {
@@ -54,41 +78,29 @@ function report_forumgraph_get_schooloptions() {
  * @param array &$course_names store names of all visible courses, passed by reference
  */
 function report_forumgraph_get_category_courses($category, &$visible_courses, &$course_names) {
+    global $DB;
     // Big assumption: no courses are in the top level, i.e. not in any categories
-    if ($categories = get_child_categories($category)) {
+    if ($categories = report_forumgraph_get_child_categories($category)) {
         $usearr = $categories;
         for ($i=0; $i<sizeof($usearr); $i++) {
             if ($usearr[$i]->coursecount > 0) {
                 if ($courses = get_courses($usearr[$i]->id, 'c.sortorder ASC', 'c.id,c.sortorder,c.visible,c.fullname,c.shortname,c.summary')) {
                     $usearr[$i]->courses = array();
                     foreach ($courses as $course) {
-                        $context = get_context_instance(CONTEXT_COURSE, $course->id);
+                        $context = context_course::instance($course->id);
                         if (has_capability('moodle/course:view', $context)) {
-                            $usearr[$i]->courses[] = $course;
-                            $visible_courses[] = $course->id;
-                            $course_names[$course->id] = $course->fullname;
+                            if ($DB->record_exists('forum_discussions', array('course'=>$course->id))) {
+                                $usearr[$i]->courses[] = $course;
+                                $visible_courses[] = $course->id;
+                                $course_names[$course->id] = $course->fullname;
+                            }
                         }
                     }
                 }
             }
             report_forumgraph_get_category_courses($categories[$i]->id, $visible_courses, $course_names);
         }
-    }/* else {
-        $usearr = array();
-        $usearr[0] = new stdClass();
-        // courses in the first level
-        if ($courses = get_courses($category, 'c.sortorder ASC', 'c.id,c.sortorder,c.visible,c.fullname,c.shortname,c.summary')) {
-            $usearr[0]->courses = array();
-            foreach ($courses as $course) {
-                $context = get_context_instance(CONTEXT_COURSE, $course->id);
-                if (has_capability('moodle/course:view', $context)) {
-                    $usearr[0]->courses[] = $course;
-                    $visible_courses[] = $course->id;
-                    $course_names[$course->id] = $course->fullname;
-                }
-            }
-        }
-    }*/
+    }
 }
 
 /**
@@ -104,9 +116,11 @@ function report_forumgraph_get_forumoptions($cid) {
         if ($forums = $DB->get_records('forum', array('course'=>$cid), 'id DESC')) {
             foreach ($forums as $forum) {
                 $cm = get_coursemodule_from_instance("forum", $forum->id, $cid);
-                $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+                $context = context_module::instance($cm->id);
                 if (has_capability('mod/forum:addinstance', $context)) {
-                    $forumoptions[$forum->id] = $forum->name;
+                    if ($DB->record_exists('forum_discussions', array('forum'=>$forum->id))) {
+                        $forumoptions[$forum->id] = $forum->name;
+                    }
                 }
             }
         } else {
@@ -135,7 +149,7 @@ function report_forumgraph_get_forum_nodes_edges($fid) {
             list($in_sql, $in_params) = $DB->get_in_or_equal($discussion_ids, SQL_PARAMS_NAMED);
             $select = "discussion $in_sql";
             if ($posts = $DB->get_records_select('forum_posts', $select, $in_params)) {
-                $context = get_context_instance(CONTEXT_COURSE, $forum->course);
+                $context = context_course::instance($forum->course);
                 $nodes = array();
                 $edges = array();
                 $uid_mapping = array();
