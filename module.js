@@ -253,6 +253,10 @@ function d3Graph() {
             });
         });
         
+        var k = Math.sqrt(node.length / (width * height));
+        force.charge(-10 / k)
+             .gravity(100 * k);
+        
         function fade(opacity, mouseover) {
             return function(d) {
                 node.style("stroke-opacity", function(o) {
