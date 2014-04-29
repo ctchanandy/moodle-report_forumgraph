@@ -17,7 +17,7 @@ The implementation of this report is in its early stage and it may have problems
 
 One known problem is that courses not in any course categories cannot be selected now. Also it may not work on large forum with lots of posts.
 
-Export graph as PDF/PNG is not supported now, it can only be saved as SVG file using browsers like Google Chrome.
+Export graph as image/document is not supported now.
 
 ===CREDITS===
 Andy Chan <ctchan.andy@gmail.com>, Programmer, CITE (http://www.cite.hku.hk)

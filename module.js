@@ -8,10 +8,11 @@ var edgeCurve = 1;
 
 M.report_forumgraph = {};
 
-M.report_forumgraph.init = function(Y, forum, modid, courseid) {
+M.report_forumgraph.init = function(Y, forum, modid, courseid, wwwroot) {
     forumgraph.forum = forum;
     forumgraph.modid = modid;
     forumgraph.courseid = courseid;
+    forumgraph.wwwroot = wwwroot;
 };
 
 window.onload = function() {
@@ -129,7 +130,7 @@ function runJS(httpRequest) {
 function nodeclick(d) {
     var param = 'chooselog=1&showusers=1&showcourses=1&date=0&modaction=add&logformat=showashtml&host_course=1%2F'
                  +forumgraph.courseid+'&modid='+forumgraph.modid+'&user='+d.userid;
-    window.open('/report/log/index.php?'+param, '_blank', 'location=yes,height=600,width=800,scrollbars=yes,status=yes');
+    window.open(forumgraph.wwwroot+'/report/log/index.php?'+param, '_blank', 'location=yes,height=600,width=800,scrollbars=yes,status=yes');
 }
 
 function toggleNodeLabel() {

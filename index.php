@@ -188,7 +188,7 @@ if (!empty($school) && !empty($course) && !empty($forum)) {
         if ($mpus) {
             $mpu_str .= '<ol id="topposters">';
             foreach ($mpus as $mpu) {
-                $log_href = '/report/log/index.php?chooselog=1&showusers=1&showcourses=1&date=0&modaction=add&logformat=showashtml&host_course=1%2F';
+                $log_href = $CFG->wwwroot.'/report/log/index.php?chooselog=1&showusers=1&showcourses=1&date=0&modaction=add&logformat=showashtml&host_course=1%2F';
                 $log_href .= $course.'&modid='.$cm->id.'&user='.$mpu->userid;
                 $postuser = $DB->get_record('user', array('id'=>$mpu->userid));
                 $mpu_str .= "<li><a href='$log_href' target='_blank'>".fullname($postuser)."</a> ($mpu->postcount)</li>";
@@ -243,7 +243,8 @@ if (!empty($school) && !empty($course) && !empty($forum)) {
 $js_course = $course ? $course : 0;
 $js_cmid   = isset($cm) ? $cm->id : 0;
 $js_forum  = $forum ? $forum : 0;
+$js_wwwroot = $CFG->wwwroot;
 
-$PAGE->requires->js_init_call('M.report_forumgraph.init', array($js_forum, $js_cmid, $js_course));
+$PAGE->requires->js_init_call('M.report_forumgraph.init', array($js_forum, $js_cmid, $js_course, $js_wwwroot));
 
 echo $OUTPUT->footer();
