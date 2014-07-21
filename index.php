@@ -96,6 +96,20 @@ $schoolmenu = html_writer::select($schooloptions, "school", $school, get_string(
 if ($course || (!$course && $school)) {
     $courses = array();
     $coursenames = array();
+    
+    // 20140721: get courses under first level of category
+    if ($first_level_courses = get_courses($school, 'c.sortorder ASC', 'c.id,c.sortorder,c.visible,c.fullname,c.shortname,c.summary')) {
+        foreach ($first_level_courses as $flc) {
+            $context = context_course::instance($flc->id);
+            if (has_capability('moodle/course:view', $context)) {
+                if ($DB->record_exists('forum_discussions', array('course'=>$flc->id))) {
+                    $courses[] = $flc->id;
+                    $coursenames[$flc->id] = $flc->fullname;
+                }
+            }
+        }
+    }
+    
     report_forumgraph_get_category_courses($school, $courses, $coursenames);
     $coursemenu = html_writer::select($coursenames, 'course', $course, get_string('choose', 'report_forumgraph'), array('onchange'=>'loadForumMenu(this.options[this.selectedIndex].value)'));
 } else {
