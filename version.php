@@ -19,17 +19,17 @@
  *
  * @package    report
  * @subpackage forumgraph
- * @copyright  2014 Andy Chan <ctchan.andy@gmail.com>
+ * @copyright  2014-16 Andy Chan <ctchan.andy@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die;
 
-$plugin->version   = 2016072700;        // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2012110900;        // Requires this Moodle version
+$plugin->version   = 2016081200;        // The current plugin version (Date: YYYYMMDDXX)
+$plugin->requires  = 2015051100;        // Requires this Moodle version
 $plugin->component = 'report_forumgraph'; // Full name of the plugin (used for diagnostics)
 
-$plugin->release   = '2016072700';
+$plugin->release   = 'Testesd on Moodle 3.1.1 (Build - 2016052301)';
 $plugin->maturity  = 'MATURITY_ALPHA';
 
 $plugin->dependencies = array(

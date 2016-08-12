@@ -13,15 +13,15 @@ The Forum Graph Report analyse interactions in a single Forum activity and creat
 - A table summarising the total no. of discussions and replies in the forum, as well as the top three user who post the most.
 
 ===REMARKS===
-The implementation of this report is in its early stage and it may have problems when it is installed in your Moodle. It was tested in Moodle 2.6 as of Feb 2014.
+The implementation of this report is in its early stage and it may have problems when it is installed in your Moodle. It was tested in Moodle 3.1.1 as of mid-August 2016.
 
 One known problem is that courses not in any course categories cannot be selected now. Also it may not work on large forum with lots of posts.
 
-Export graph as image/document is not supported now.
+Export graph as image/document is not supported now, but the graph itself is a <svg> HTML tag in the source code so it is possible to save it using some brower extensions or bookmarklets.
 
 ===CREDITS===
-Andy Chan <ctchan.andy@gmail.com>, Programmer, CITE (http://www.cite.hku.hk)
+Developer: Andy Chan <ctchan.andy@gmail.com>, Programmer, CITE, HKU (http://www.cite.hku.hk)
 
 =LINKS=
-D3.js http://d3js.org/
+D3.js http://d3js.org/ (Library released under BSD license)
 Force Layout https://github.com/mbostock/d3/wiki/Force-Layout

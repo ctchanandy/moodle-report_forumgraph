@@ -77,30 +77,29 @@ function report_forumgraph_get_schooloptions() {
  * @param array &$visible_courses store ids of all visible courses, passed by reference
  * @param array &$course_names store names of all visible courses, passed by reference
  */
-function report_forumgraph_get_category_courses($category_id, &$visible_courses, &$course_names) {
+function report_forumgraph_get_category_courses($category, &$visible_courses, &$course_names) {
     global $DB;
-
-    $category = $DB->get_record('course_categories', array('id' => $category_id));
-    
-    if ($category->coursecount > 0) {
-        if ($courses = get_courses($category->id, 'c.sortorder ASC', 'c.id,c.sortorder,c.visible,c.fullname,c.shortname,c.summary')) {
-            $category->courses = array();
-            foreach ($courses as $course) {
-                $context = context_course::instance($course->id);
-                if (has_capability('moodle/course:view', $context)) {
-                    if ($DB->record_exists('forum_discussions', array('course'=>$course->id))) {
-                        $visible_courses[] = $course->id;
-                        $course_names[$course->id] = $course->fullname;
+    // Big assumption: no courses are in the top level, i.e. not in any categories
+    if ($categories = report_forumgraph_get_child_categories($category)) {
+        $usearr = $categories;
+        for ($i=0; $i<sizeof($usearr); $i++) {
+            if ($usearr[$i]->coursecount > 0) {
+                if ($courses = get_courses($usearr[$i]->id, 'c.sortorder ASC', 'c.id,c.sortorder,c.visible,c.fullname,c.shortname,c.summary')) {
+                    $usearr[$i]->courses = array();
+                    foreach ($courses as $course) {
+                        $context = context_course::instance($course->id);
+                        if (has_capability('moodle/course:view', $context)) {
+                            if ($DB->record_exists('forum_discussions', array('course'=>$course->id))) {
+                                $usearr[$i]->courses[] = $course;
+                                $visible_courses[] = $course->id;
+                                $course_names[$course->id] = "[".$usearr[$i]->name."] ".$course->fullname;
+                            }
+                        }
                     }
                 }
             }
+            report_forumgraph_get_category_courses($categories[$i]->id, $visible_courses, $course_names);
         }
-    }
-
-    $child_categories = report_forumgraph_get_child_categories($category_id);
-
-    foreach ($child_categories as $key => $value) {
-        report_forumgraph_get_category_courses($value->id, $visible_courses, $course_names);
     }
 }
 
