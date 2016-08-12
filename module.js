@@ -15,22 +15,6 @@ M.report_forumgraph.init = function(Y, forum, modid, courseid, wwwroot) {
     forumgraph.wwwroot = wwwroot;
 };
 
-window.onload = function() {
-    var schoolmenu = document.getElementById("menuschool");
-    var coursemenu = document.getElementById("menucourse");
-    var forummenu = document.getElementById("menuforum");
-    
-    if (schoolmenu.selectedIndex != 0) {
-        loadCourseMenu(schoolmenu.options[schoolmenu.selectedIndex].value);
-        if (coursemenu.selectedIndex != 0) {
-            loadForumMenu(coursemenu.options[coursemenu.selectedIndex].value);
-            if (forummenu.selectedIndex != 0) {
-                d3Graph();
-            }
-        }
-    }
-}
-
 function loadCourseMenu(school) {
     var coursemenu = document.getElementById("menucourse");
     if (school == 0) {
@@ -70,6 +54,10 @@ function loadCourseMenu(school) {
     };
     httpRequest.open('GET', 'getcourses.php?category='+school, true);
     httpRequest.send('');
+    
+    if (coursemenu.selectedIndex != 0) {
+        loadForumMenu(coursemenu.options[coursemenu.selectedIndex].value);
+    }
 }
 
 function loadForumMenu(course) {
@@ -107,6 +95,10 @@ function loadForumMenu(course) {
     };
     httpRequest.open('GET', 'getforums.php?course='+course, true);
     httpRequest.send('');
+    
+    if (forummenu.selectedIndex != 0) {
+        d3Graph();
+    }
 }
 
 function toTimestamp(year,month,day,hour,minute,second) {
@@ -128,7 +120,7 @@ function runJS(httpRequest) {
 }
 
 function nodeclick(d) {
-    var param = 'chooselog=1&showusers=1&showcourses=1&date=0&modaction=add&logformat=showashtml&host_course=1%2F'
+    var param = 'chooselog=1&showusers=1&showcourses=1&date=0&modaction=c&edulevel=-1&logreader=logstore_standard&id='
                  +forumgraph.courseid+'&modid='+forumgraph.modid+'&user='+d.userid;
     window.open(forumgraph.wwwroot+'/report/log/index.php?'+param, '_blank', 'location=yes,height=600,width=800,scrollbars=yes,status=yes');
 }
@@ -286,3 +278,14 @@ function d3Graph() {
         }
     });
 }
+
+require(['jquery'], function($) {
+    $(function() {
+        var schoolmenu = document.getElementById("menuschool");
+        var coursemenu = document.getElementById("menucourse");
+        var forummenu = document.getElementById("menuforum");
+        if (schoolmenu.selectedIndex != 0) {
+            loadCourseMenu(schoolmenu.options[schoolmenu.selectedIndex].value);
+        }
+    });
+});

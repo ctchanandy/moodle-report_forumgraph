@@ -27,9 +27,9 @@ defined('MOODLE_INTERNAL') || die();
 $capabilities = array(
 
     'report/forumgraph:view' => array(
-        'riskbitmask' => RISK_PERSONAL,
+        'riskbitmask' => RISK_CONFIG,
         'captype' => 'read',
-        'contextlevel' => CONTEXT_COURSE,
+        'contextlevel' => CONTEXT_SYSTEM,
         'archetypes' => array(
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
