@@ -32,6 +32,19 @@ $category = required_param('category', PARAM_INT);
 $visible_courses = array();
 $course_names = array();
 
+// Get courses under first level of category
+if ($first_level_courses = get_courses($category, 'c.sortorder ASC', 'c.id,c.sortorder,c.visible,c.fullname,c.shortname,c.summary')) {
+    foreach ($first_level_courses as $flc) {
+        $context = context_course::instance($flc->id);
+        if (has_capability('moodle/course:view', $context)) {
+            if ($DB->record_exists('forum_discussions', array('course'=>$flc->id))) {
+                $visible_courses[] = $flc->id;
+                $course_names[$flc->id] = $flc->fullname;
+            }
+        }
+    }
+}
+
 report_forumgraph_get_category_courses($category, $visible_courses, $course_names);
 
 $return = '';

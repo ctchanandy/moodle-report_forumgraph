@@ -29,7 +29,7 @@ require_once($CFG->libdir.'/adminlib.php');
 
 $PAGE->requires->js('/report/forumgraph/d3.v3.min.js');
 
-$school = optional_param('school', 0, PARAM_INT);
+//$school = optional_param('school', 0, PARAM_INT);
 $course = optional_param('course', 0, PARAM_INT);
 $forum = optional_param('forum', 0, PARAM_INT);
 
@@ -40,9 +40,11 @@ if (empty($course)) {
 }
 
 $params = array();
+/*
 if ($school !== 0) {
     $params['school'] = $school;
 }
+*/
 if ($course !== 0) {
     $params['course'] = $course;
 }
@@ -70,7 +72,7 @@ require_capability('report/forumgraph:view', $context);
 if ($course && $forum) {
     $cm = get_coursemodule_from_instance("forum", $forum, $course);
 }
-
+/*
 // get school
 if (!$school) {
     if ($course) {
@@ -87,10 +89,9 @@ if (!$school) {
         }
     }
 }
-
 // school menu
 $schooloptions = report_forumgraph_get_schooloptions();
-$schoolmenu = html_writer::select($schooloptions, "school", $school, get_string('choose', 'report_forumgraph'), array('onchange'=>'loadCourseMenu(this.options[this.selectedIndex].value);loadForumMenu(0);'));
+$schoolmenu = html_writer::select($schooloptions, "school", $school, get_string('choose', 'report_forumgraph'), array('onchange'=>'loadCourseMenu(this.options[this.selectedIndex].value);'));
 
 // course menu
 if ($course || (!$course && $school)) {
@@ -112,27 +113,30 @@ if ($course || (!$course && $school)) {
     
     report_forumgraph_get_category_courses($school, $courses, $coursenames);
     $coursemenu = html_writer::select($coursenames, 'course', $course, get_string('choose', 'report_forumgraph'), array('onchange'=>'loadForumMenu(this.options[this.selectedIndex].value)'));
+    
 } else {
     $coursemenu = html_writer::select(array(), 'course', $course, get_string('choose', 'report_forumgraph'), array('onchange'=>'loadForumMenu(this.options[this.selectedIndex].value)'));
 }
+*/
 
 // forum menu
 $forumoptions = report_forumgraph_get_forumoptions($course);
 $forummenu = html_writer::select($forumoptions, "forum", $forum, get_string('choose', 'report_forumgraph'));
 
 // Print the header.
-$displaycoursename = isset($coursenames[$course]) ? $coursenames[$course] : '---';
+//$displaycoursename = isset($coursenames[$course]) ? $coursenames[$course] : '---';
+$displaycoursename = isset($course_obj->fullname) ? $course_obj->fullname : '---';
 $PAGE->set_url('/report/forumgraph/index.php', $params);
 $PAGE->set_pagelayout('report');
-$PAGE->set_title(get_string('forumgraph', 'report_forumgraph').$displaycoursename);
-$PAGE->set_heading(get_string('forumgraph', 'report_forumgraph').$displaycoursename);
+$PAGE->set_title(get_string('forumgraph', 'report_forumgraph').': '.$displaycoursename);
+$PAGE->set_heading(get_string('forumgraph', 'report_forumgraph').': '.$displaycoursename);
 
 echo $OUTPUT->header();
 
 // Submit buttons
 $submit = '<input type="submit" value="'.get_string('view').'" />';
 
-echo '<form action="index.php" method="post">'."\n";
+echo '<form action="index.php?course='.$course.'" method="post">'."\n";
 echo '<div>';
 
 // Table contain the dropdown menu for selection of school, course and forum
@@ -141,6 +145,7 @@ $table->size  = array('25%', '75%');
 $table->align = array('right','left');
 $table->data  = array();
 
+/*
 $cell1 = new html_table_cell();
 $cell1->text = html_writer::label(get_string('firstlevelcategory', 'report_forumgraph'), 'menuschool');
 $cell2 = new html_table_cell();
@@ -154,6 +159,7 @@ $cell4 = new html_table_cell();
 $cell4->text = $coursemenu;
 $row2 = new html_table_row();
 $row2->cells = array($cell3, $cell4);
+*/
 
 $cell5 = new html_table_cell();
 $cell5->text = html_writer::label(get_string('forum', 'forum'), 'menuforum');
@@ -169,7 +175,8 @@ $cell8->text = $submit;
 $row4 = new html_table_row();
 $row4->cells = array($cell7, $cell8);
 
-$table->data = array($row1, $row2, $row3, $row4);
+//$table->data = array($row1, $row2, $row3, $row4);
+$table->data = array($row3, $row4);
 
 echo html_writer::table($table);
 echo '</div>';
@@ -180,7 +187,8 @@ $heading = '';
 if ($forum) $heading = $forumoptions[$forum];
 echo $OUTPUT->heading($heading);
 
-if (!empty($school) && !empty($course) && !empty($forum)) {
+//if (!empty($school) && !empty($course) && !empty($forum)) {
+if (!empty($course) && !empty($forum)) {
     // Get some important information and statisitic for the selected forum
     $forum_obj = $DB->get_record('forum', array('id'=>$forum));
     $discussions = $DB->get_records('forum_discussions', array('forum'=>$forum_obj->id));
