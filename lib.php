@@ -164,10 +164,18 @@ function report_forumgraph_get_forum_nodes_edges($fid) {
                     if (!isset($nodes[$author->id])) {
                         $nodes[$author->id]['name'] = $author->lastname." ".$author->firstname;
                         $nodes[$author->id]['userid'] = $author->id;
+                        $nodes[$author->id]['username'] = isset($author->username) ? $author->username : '';
                         $nodes[$author->id]['size'] = 1;
                         $nodes[$author->id]['discussion'] = $post->parent ? 0:1;
                         $nodes[$author->id]['reply'] = $post->parent ? 1:0;
                         $nodes[$author->id]['group'] = ($authorrole==5)?1:5;
+                        // capture last access timestamp and role shortname for richer tooltips
+                        $nodes[$author->id]['lastaccess'] = isset($author->lastaccess) ? (int)$author->lastaccess : 0;
+                        $roleshort = '';
+                        if ($authorrole) {
+                            $roleshort = $DB->get_field('role', 'shortname', array('id' => $authorrole));
+                        }
+                        $nodes[$author->id]['role'] = $roleshort;
                         $uid_mapping[$author->id] = $count;
                         $count++;
                     } else {
@@ -217,10 +225,13 @@ function report_forumgraph_create_json($nodes, $edges, $uid_mapping) {
     foreach ($nodes as $node) {
         $json .= '{"name":"'.$node['name'].'", '.
                   '"userid":'.$node['userid'].', '.
+                  '"username":"'.(isset($node['username'])? $node['username'] : '').'", '.
                   '"size":'.$node['size'].', '.
                   '"discussion":'.$node['discussion'].', '.
                   '"reply":'.$node['reply'].', '.
-                  '"group":'.$node['group'].'}';
+                  '"group":'.$node['group'].', '.
+                  '"lastaccess":'.(isset($node['lastaccess']) ? $node['lastaccess'] : 0).', '.
+                  '"role":"'.(isset($node['role']) ? addslashes($node['role']) : '').'"}';
         if ($node['name'] != $lastnode['name']) $json .= ',';
     }
     $json .= '],';

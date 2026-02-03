@@ -25,12 +25,12 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-$plugin->version   = 2016081202;        // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2015051100;        // Requires this Moodle version
+$plugin->version   = 2026013000;        // The current plugin version (Date: YYYYMMDDXX)
+$plugin->requires  = 2024042200;        // Requires Moodle 5.0 or above
 $plugin->component = 'report_forumgraph'; // Full name of the plugin (used for diagnostics)
 
-$plugin->release   = 'Testesd on Moodle 3.1.1 (Build - 2016052301)';
-$plugin->maturity  = 'MATURITY_ALPHA';
+$plugin->release   = '1.0.0 (Moodle 5.0)';
+$plugin->maturity  = 'MATURITY_BETA';
 
 $plugin->dependencies = array(
     'mod_forum' => ANY_VERSION

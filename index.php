@@ -26,10 +26,8 @@
 require_once('../../config.php');
 require_once($CFG->dirroot.'/report/forumgraph/lib.php');
 require_once($CFG->libdir.'/adminlib.php');
+$PAGE->requires->jquery();
 
-$PAGE->requires->js('/report/forumgraph/d3.v3.min.js');
-
-//$school = optional_param('school', 0, PARAM_INT);
 $course = optional_param('course', 0, PARAM_INT);
 $forum = optional_param('forum', 0, PARAM_INT);
 
@@ -40,11 +38,7 @@ if (empty($course)) {
 }
 
 $params = array();
-/*
-if ($school !== 0) {
-    $params['school'] = $school;
-}
-*/
+
 if ($course !== 0) {
     $params['course'] = $course;
 }
@@ -72,64 +66,33 @@ require_capability('report/forumgraph:view', $context);
 if ($course && $forum) {
     $cm = get_coursemodule_from_instance("forum", $forum, $course);
 }
-/*
-// get school
-if (!$school) {
-    if ($course) {
-        // if course is available
-        $course_obj = $DB->get_record('course', array("id"=>$course));
-        if ($course_obj->category) {
-            $course_category = $DB->get_record('course_categories', array("id"=>$course_obj->category));
-            if ($course_category->parent) {
-                $categories = explode('/', $course_category->path);
-                $school = $categories[1];
-            } else {
-                $school = $course_category->id;
-            }
-        }
-    }
-}
-// school menu
-$schooloptions = report_forumgraph_get_schooloptions();
-$schoolmenu = html_writer::select($schooloptions, "school", $school, get_string('choose', 'report_forumgraph'), array('onchange'=>'loadCourseMenu(this.options[this.selectedIndex].value);'));
 
-// course menu
-if ($course || (!$course && $school)) {
-    $courses = array();
-    $coursenames = array();
-    
-    // 20140721: get courses under first level of category
-    if ($first_level_courses = get_courses($school, 'c.sortorder ASC', 'c.id,c.sortorder,c.visible,c.fullname,c.shortname,c.summary')) {
-        foreach ($first_level_courses as $flc) {
-            $context = context_course::instance($flc->id);
-            if (has_capability('moodle/course:view', $context)) {
-                if ($DB->record_exists('forum_discussions', array('course'=>$flc->id))) {
-                    $courses[] = $flc->id;
-                    $coursenames[$flc->id] = $flc->fullname;
-                }
-            }
-        }
-    }
-    
-    report_forumgraph_get_category_courses($school, $courses, $coursenames);
-    $coursemenu = html_writer::select($coursenames, 'course', $course, get_string('choose', 'report_forumgraph'), array('onchange'=>'loadForumMenu(this.options[this.selectedIndex].value)'));
-    
-} else {
-    $coursemenu = html_writer::select(array(), 'course', $course, get_string('choose', 'report_forumgraph'), array('onchange'=>'loadForumMenu(this.options[this.selectedIndex].value)'));
-}
-*/
 
 // forum menu
 $forumoptions = report_forumgraph_get_forumoptions($course);
 $forummenu = html_writer::select($forumoptions, "forum", $forum, get_string('choose', 'report_forumgraph'));
 
 // Print the header.
-//$displaycoursename = isset($coursenames[$course]) ? $coursenames[$course] : '---';
 $displaycoursename = isset($course_obj->fullname) ? $course_obj->fullname : '---';
 $PAGE->set_url('/report/forumgraph/index.php', $params);
 $PAGE->set_pagelayout('report');
 $PAGE->set_title(get_string('forumgraph', 'report_forumgraph').': '.$displaycoursename);
 $PAGE->set_heading(get_string('forumgraph', 'report_forumgraph').': '.$displaycoursename);
+// load plugin styles
+$PAGE->requires->css(new moodle_url('/report/forumgraph/styles.css'));
+
+// register JS strings used by the frontend module
+$PAGE->requires->strings_for_js(array(
+    'graph_settings','color_scheme','palette_preview','node_color','node_label','label_size',
+    'edge_color','node_size','edge_thickness','edge_style','show_arrows','layout','reset',
+    'download_png','zoom_toggle_title','zoom_on','zoom_off','automatic_group_colors','single_color',
+    'category10','vivid','pastel','warm','cool','full_name','first_name','last_name','username',
+    'none_hide_labels','label_position','label_pos_right','label_pos_left','label_pos_center','label_color',
+    'curve','straight','force_balanced','force_tight','force_loose','circular','grid',
+    'loading_graph','export_downscale_warning','posts_label','discussions_label','replies_label','role_label',
+    'last_seen','posts_last_7d','avg_posts_per_user','avgreplies','top_posters'
+    ,'toggleauthorname','show_names','hide_names'
+), 'report_forumgraph');
 
 echo $OUTPUT->header();
 
@@ -145,24 +108,8 @@ $table->size  = array('25%', '75%');
 $table->align = array('right','left');
 $table->data  = array();
 
-/*
-$cell1 = new html_table_cell();
-$cell1->text = html_writer::label(get_string('firstlevelcategory', 'report_forumgraph'), 'menuschool');
-$cell2 = new html_table_cell();
-$cell2->text = $schoolmenu;
-$row1 = new html_table_row();
-$row1->cells = array($cell1, $cell2);
-
-$cell3 = new html_table_cell();
-$cell3->text = html_writer::label(get_string('course'), 'menucourse');
-$cell4 = new html_table_cell();
-$cell4->text = $coursemenu;
-$row2 = new html_table_row();
-$row2->cells = array($cell3, $cell4);
-*/
-
 $cell5 = new html_table_cell();
-$cell5->text = html_writer::label(get_string('forum', 'forum'), 'menuforum');
+$cell5->text = html_writer::label(get_string('forumname', 'report_forumgraph'), 'menuforum');
 $cell6 = new html_table_cell();
 $cell6->text = $forummenu;
 $row3 = new html_table_row();
@@ -175,7 +122,6 @@ $cell8->text = $submit;
 $row4 = new html_table_row();
 $row4->cells = array($cell7, $cell8);
 
-//$table->data = array($row1, $row2, $row3, $row4);
 $table->data = array($row3, $row4);
 
 echo html_writer::table($table);
@@ -187,7 +133,6 @@ $heading = '';
 if ($forum) $heading = $forumoptions[$forum];
 echo $OUTPUT->heading($heading);
 
-//if (!empty($school) && !empty($course) && !empty($forum)) {
 if (!empty($course) && !empty($forum)) {
     // Get some important information and statisitic for the selected forum
     $forum_obj = $DB->get_record('forum', array('id'=>$forum));
@@ -222,43 +167,74 @@ if (!empty($course) && !empty($forum)) {
         }
     }
     
-    // Get top 3 discussion with most replies
-    
-    
-    // Table showing some important information and statisitic for the selected forum
-    $summarytable = new html_table();
-    $summarytable->size  = array('25%', '75%');
-    $summarytable->align = array('right','left');
-    
-    $cell1 = new html_table_cell();
-    $cell1->text = get_string('discussioncount', 'report_forumgraph');
-    $cell2 = new html_table_cell();
-    $cell2->text = count($discussions);
-    $row1 = new html_table_row();
-    $row1->cells = array($cell1, $cell2);
-    
-    $cell3 = new html_table_cell();
-    $cell3->text = get_string('replycount', 'report_forumgraph');
-    $cell4 = new html_table_cell();
-    $cell4->text = $replies_count;
-    $row2 = new html_table_row();
-    $row2->cells = array($cell3, $cell4);
-    
-    $cell5 = new html_table_cell();
-    $cell5->text = get_string('mostpostuser', 'report_forumgraph');
-    $cell6 = new html_table_cell();
-    $cell6->text = $mpu_str;
-    $row3 = new html_table_row();
-    $row3->cells = array($cell5, $cell6);
-    
-    $summarytable->data = array($row1, $row2, $row3);
-    echo html_writer::table($summarytable);
-    
-    echo $OUTPUT->box_start('generalbox', 'forumgraphsvg');
-    // button to show node label
-    echo $OUTPUT->box_start('generalbox', 'forumgraphoption');
-    echo '<input name="toggleNodeLabelButton" type="button" value="'.get_string('toggleauthorname', 'report_forumgraph').'" onclick="toggleNodeLabel()" />';
+    // Compact stats UI for the selected forum
+    // compute additional useful metrics
+    $discussioncount = count($discussions);
+    $replycount = $replies_count;
+    $unique_authors = $DB->count_records_sql("SELECT COUNT(DISTINCT userid) FROM {forum_posts} WHERE discussion $in_sql", $in_params);
+    $total_posts = $DB->count_records_sql("SELECT COUNT(*) FROM {forum_posts} WHERE discussion $in_sql", $in_params);
+    $active_last7 = $DB->count_records_sql("SELECT COUNT(*) FROM {forum_posts} WHERE discussion $in_sql AND modified >= :cutoff", array_merge($in_params, array('cutoff' => time() - 7 * 86400)));
+    $avg_posts_per_user = round($total_posts / max(1, $unique_authors), 2);
+    $avg_replies = round($replycount / max(1, $discussioncount), 2);
+    $lastpost_ts = $DB->get_field_sql("SELECT MAX(modified) FROM {forum_posts} WHERE discussion $in_sql", $in_params);
+    $lastpost = $lastpost_ts ? userdate($lastpost_ts) : 'n/a';
+
+    echo $OUTPUT->box_start('generalbox', 'forumgraphstats');
+    echo '<div class="fg-stats-wrapper">';
+
+    echo '<div class="fg-stat-card">';
+    echo '<div class="fg-stat-value">'.(int)$discussioncount.'</div>';
+    echo '<div class="fg-stat-label">'.get_string('discussions_label','report_forumgraph').'</div>';
+    echo '</div>';
+
+    echo '<div class="fg-stat-card">';
+    echo '<div class="fg-stat-value">'.(int)$replycount.'</div>';
+    echo '<div class="fg-stat-label">'.get_string('replies_label','report_forumgraph').'</div>';
+    echo '</div>';
+
+    echo '<div class="fg-stat-card">';
+    echo '<div class="fg-stat-value">'.(int)$unique_authors.'</div>';
+    echo '<div class="fg-stat-label">'.get_string('usercount','report_forumgraph').'</div>';
+    echo '</div>';
+
+    echo '<div class="fg-stat-card">';
+    echo '<div class="fg-stat-value">'.htmlspecialchars($avg_posts_per_user).'</div>';
+    echo '<div class="fg-stat-label">'.get_string('avg_posts_per_user','report_forumgraph').'</div>';
+    echo '</div>';
+
+    echo '<div class="fg-stat-card">';
+    echo '<div class="fg-stat-value">'.htmlspecialchars($avg_replies).'</div>';
+    echo '<div class="fg-stat-label">'.get_string('avgreplies','report_forumgraph').'</div>';
+    echo '</div>';
+
+    echo '<div class="fg-stat-card">';
+    echo '<div class="fg-stat-value">'.(int)$active_last7.'</div>';
+    echo '<div class="fg-stat-label">'.get_string('posts_last_7d','report_forumgraph').'</div>';
+    echo '</div>';
+
+    echo '<div class="fg-stat-card fg-stat-topposters">';
+    echo '<div class="fg-stat-title">'.get_string('top_posters','report_forumgraph').'</div>';
+    echo '<div class="fg-stat-content">'. $mpu_str .'</div>';
+    echo '</div>';
+
+    echo '</div>'; // stats container
     echo $OUTPUT->box_end();
+
+    // Graph rendering container (required by the frontend module)
+    echo $OUTPUT->box_start('generalbox', 'forumgraphsvg');
+    echo '<div class="fg-help-popover">';
+    echo '<button type="button" class="fg-help-btn" aria-label="'.get_string('graph_help_title','report_forumgraph').'">?</button>';
+    echo '<div class="fg-help-tooltip" role="tooltip">';
+    echo '<div class="fg-help-title">'.get_string('graph_help_title','report_forumgraph').'</div>';
+    echo '<ul class="fg-help-list">';
+    echo '<li>'.get_string('graph_help_pan','report_forumgraph').'</li>';
+    echo '<li>'.get_string('graph_help_zoom','report_forumgraph').'</li>';
+    echo '<li>'.get_string('graph_help_drag','report_forumgraph').'</li>';
+    echo '<li>'.get_string('graph_help_drag_release','report_forumgraph').'</li>';
+    echo '<li>'.get_string('graph_help_fit','report_forumgraph').'</li>';
+    echo '</ul>';
+    echo '</div>';
+    echo '</div>';
     echo $OUTPUT->box_end();
 }
 
@@ -267,6 +243,6 @@ $js_cmid   = isset($cm) ? $cm->id : 0;
 $js_forum  = $forum ? $forum : 0;
 $js_wwwroot = $CFG->wwwroot;
 
-$PAGE->requires->js_init_call('M.report_forumgraph.init', array($js_forum, $js_cmid, $js_course, $js_wwwroot));
+$PAGE->requires->js_call_amd('report_forumgraph/module', 'init', array($js_forum, $js_cmid, $js_course, $js_wwwroot));
 
 echo $OUTPUT->footer();

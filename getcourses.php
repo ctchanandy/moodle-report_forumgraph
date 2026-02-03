@@ -27,7 +27,15 @@ require_once($CFG->dirroot.'/report/forumgraph/lib.php');
 
 require_login();
 
+// Minimal capability check: ensure user may view forumgraph reports.
+require_capability('report/forumgraph:view', context_system::instance());
+
 $category = required_param('category', PARAM_INT);
+
+global $DB;
+
+// No global capability check here because we inspect each course's context below,
+// but require that user can view at least the category courses via standard checks.
 
 $visible_courses = array();
 $course_names = array();
@@ -47,18 +55,13 @@ if ($first_level_courses = get_courses($category, 'c.sortorder ASC', 'c.id,c.sor
 
 report_forumgraph_get_category_courses($category, $visible_courses, $course_names);
 
-$return = '';
-// clear the list anyway
-$return .= 'for (i=coursemenu.length-1; i>0; i--) { coursemenu.remove(i); }';
+// Build JSON array of courses {id,name}.
+$result = array();
 if (!empty($course_names)) {
-    $index = 1;
     foreach ($course_names as $courseid => $coursename) {
-        $return .= 'opt = document.createElement("option");';
-        $return .= 'opt.value = "'.$courseid.'";';
-        $return .= 'opt.text = "'.$coursename.'";';
-        $return .= 'coursemenu.add(opt, null);';
-        $index++;
+        $result[] = array('id' => (int)$courseid, 'name' => (string)$coursename);
     }
 }
 
-echo $return;
+header('Content-Type: application/json; charset=utf-8');
+echo json_encode($result, JSON_UNESCAPED_UNICODE);

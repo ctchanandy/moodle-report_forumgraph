@@ -29,22 +29,23 @@ require_login();
 
 $course = required_param('course', PARAM_INT);
 
+// Verify course exists and user has capability to view this report in the course.
+global $DB;
+$courseobj = $DB->get_record('course', array('id' => $course), '*', MUST_EXIST);
+$context = context_course::instance($courseobj->id);
+require_capability('report/forumgraph:view', $context);
+
 $forums = array();
 
 $forums = report_forumgraph_get_forumoptions($course);
 
-$return = '';
-// clear the list anyway
-$return .= 'for (i=forummenu.length-1; i>0; i--) { forummenu.remove(i); }';
+// Build JSON array of forums {id,name}.
+$result = array();
 if (!empty($forums)) {
-    $index = 1;
     foreach ($forums as $fid => $forumname) {
-        $return .= 'opt = document.createElement("option");';
-        $return .= 'opt.value = "'.$fid.'";';
-        $return .= 'opt.text = "'.$forumname.'";';
-        $return .= 'forummenu.add(opt, null);';
-        $index++;
+        $result[] = array('id' => (int)$fid, 'name' => (string)$forumname);
     }
 }
 
-echo $return;
+header('Content-Type: application/json; charset=utf-8');
+echo json_encode($result, JSON_UNESCAPED_UNICODE);

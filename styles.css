@@ -2,54 +2,365 @@
  * CSS stylesheet for report_forumgraph
  */
 
-#forumgraphsvg  {
-    background: #fff;
+#forumgraphsvg {
+  background: #fff;
+  position: relative; /* contain absolutely-positioned tooltips if needed */
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  border: 1px solid #e0e0e0;
 }
 
 #forumgraphsvg circle {
-    stroke: #fff;
-    stroke-width: 1.5px;
+  stroke: #fff;
+  stroke-width: 1.5px;
 }
 
 #forumgraphsvg .link {
-    stroke: #999;
-    stroke-opacity: .6;
+  stroke: #999;
+  stroke-opacity: 0.6;
 }
 
 #forumgraphsvg path.link {
-    fill: none;
-    stroke: #666;
-    stroke-width: 1.5px;
+  fill: none;
+  stroke: #666;
+  stroke-width: 1.5px;
 }
 
 #forumgraphsvg text {
-    fill: #000;
-    font: 12px sans-serif;
-    pointer-events: none;
+  fill: #000;
+  font: 12px sans-serif;
+  pointer-events: none;
+}
+
+#forumgraphsvg svg {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 #forumgraphoption {
-    border: 0px;
+  border: 0px;
 }
 
 div.forumgraphtooltip {
-    position: absolute;
-    text-align: center;
-    width: 120px;
-    height: 50px;
-    padding: 2px;
-    font: 12px sans-serif;
-    background: lightsteelblue;
-    border: 0px;
-    border-radius: 8px;
-    pointer-events: none;
+  position: absolute;
+  text-align: left;
+  min-width: 120px;
+  max-width: 300px;
+  padding: 6px 8px;
+  font: 12px/1.2 sans-serif;
+  background: rgba(70, 130, 180, 0.95); /* steelblue with slight transparency */
+  color: #fff;
+  border: 0px;
+  border-radius: 6px;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+  word-wrap: break-word;
+}
+
+.fg-tooltip-name {
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.fg-tooltip-stats {
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+.fg-tooltip-role {
+  font-size: 12px;
+  font-style: italic;
+  margin-bottom: 4px;
+}
+.fg-tooltip-last {
+  font-size: 12px;
+  opacity: 0.9;
 }
 
 marker#end {
-    fill: #999;
+  fill: #999;
 }
 
+/* Ensure pan-capture rect covers SVG area */
+#forumgraphsvg svg > rect {
+  width: 100%;
+  height: 100%;
+}
+
+/* Sidebar for controls */
+.forumgraph-sidebar {
+  position: relative;
+  top: 0;
+  right: 0;
+  width: 220px;
+  max-height: 72vh;
+  overflow: auto;
+  background: #ffffff;
+  border-left: 1px solid #e6e6e6;
+  padding: 10px;
+  box-shadow: -2px 0 6px rgba(0, 0, 0, 0.04);
+  z-index: 10005;
+  font-size: 13px;
+}
+.forumgraph-sidebar h3 {
+  margin: 0 0 8px 0;
+  font-size: 15px;
+}
+/* collapsed handling is styled below to keep a visible open handle */
+
+/* Improved collapse: show small handle when collapsed */
+.forumgraph-sidebar {
+  position: relative;
+}
+.forumgraph-sidebar .fg-open-handle {
+  display: none;
+}
+.forumgraph-sidebar.collapsed {
+  /* no-op — keep visible */
+}
+.forumgraph-sidebar.collapsed .fg-content {
+  display: block;
+}
+
+/* wrapper layout to place sidebar beside the graph */
+.forumgraph-wrapper {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+}
+.forumgraph-wrapper > #forumgraphsvg {
+  flex: 1 1 auto;
+}
+.forumgraph-sidebar label.fg-row,
+.forumgraph-sidebar .fg-row {
+  display: block;
+  margin: 8px 0;
+}
+.forumgraph-sidebar input:focus,
+.forumgraph-sidebar select:focus,
+.forumgraph-sidebar button:focus {
+  outline: 2px solid rgba(52, 152, 219, 0.35);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.08);
+}
+.forumgraph-sidebar input[type="color"],
+.forumgraph-sidebar input[type="range"],
+.forumgraph-sidebar select {
+  width: 100%;
+  box-sizing: border-box;
+}
+.forumgraph-sidebar .fg-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+.forumgraph-sidebar button {
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid #d0d0d0;
+  background: #f7f7f7;
+  cursor: pointer;
+}
+.forumgraph-sidebar button:hover {
+  background: #f0f0f0;
+}
+
+/* hide collapse control — sidebar is always visible */
+#fg_collapse {
+  display: none;
+}
+
+/* palette preview swatches */
+.fg-palette-preview {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  margin-left: 8px;
+}
+.fg-palette-preview .fg-swatch {
+  width: 18px;
+  height: 14px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* Legend styles */
+/* legend removed */
+
 ol#topposters {
-    margin-top: 0px;
-    margin-bottom: 5px;
+  margin-top: 0px;
+  margin-bottom: 5px;
+}
+
+/* Controls and export UI */
+.forumgraph-controls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10001;
+  display: flex;
+  gap: 6px;
+}
+.forumgraph-controls button {
+  background: #3498db;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.forumgraph-controls button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.forumgraph-controls button.active {
+  background: #2ecc71; /* vivid green when active */
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(46, 204, 113, 0.18);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+.forumgraph-controls button {
+  background: #3498db;
+}
+
+/* zoom indicator */
+.fg-zoom-indicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+  background: #b5c9d9; /* off state */
+  vertical-align: middle;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+}
+.forumgraph-controls button.active .fg-zoom-indicator {
+  background: #2ecc71; /* green when active */
+}
+
+/* small transient toast shown during export if needed */
+.forumgraph-toast {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  z-index: 10002;
+  pointer-events: none;
+}
+
+/* Help/tips popover inside the graph */
+.fg-help-popover {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 10002;
+}
+.fg-help-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #cfd8dc;
+  background: #f7f7f7;
+  color: #555;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+.fg-help-btn:hover {
+  background: #eef2f5;
+}
+.fg-help-tooltip {
+  position: absolute;
+  right: 0;
+  bottom: 36px;
+  width: 280px;
+  max-width: 80vw;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 8px 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 13px;
+  color: #444;
+  display: none;
+}
+.fg-help-popover:hover .fg-help-tooltip,
+.fg-help-popover:focus-within .fg-help-tooltip {
+  display: block;
+}
+.fg-help-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.fg-help-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+}
+.fg-help-list li {
+  margin: 3px 0;
+}
+
+/* Stats card styles (extracted from inline styles) */
+#forumgraphstats .fg-stats-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+}
+.fg-stat-card {
+  min-width: 140px;
+  padding: 10px;
+  background: #f7f7f7;
+  border-radius: 6px;
+  text-align: center;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.02) inset;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.fg-stat-card .fg-stat-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #222;
+}
+.fg-stat-card .fg-stat-label {
+  color: #666;
+  font-size: 12px;
+  margin-top: 4px;
+}
+.fg-stat-card.fg-stat-topposters {
+  flex: 1 1 260px;
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid #eee;
+}
+.fg-stat-card.fg-stat-topposters .fg-stat-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  text-align: left;
+}
+.fg-stat-card.fg-stat-topposters .fg-stat-content {
+  font-size: 13px;
+  color: #333;
+  text-align: left;
+}
+
+@media (max-width: 720px) {
+  #forumgraphstats .fg-stats-wrapper {
+    flex-direction: column;
+  }
+  .forumgraph-wrapper {
+    flex-direction: column;
+  }
 }
