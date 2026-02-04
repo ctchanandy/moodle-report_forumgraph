@@ -139,7 +139,7 @@ function report_forumgraph_get_forumoptions($cid) {
  * @param int $fid forum id
  * @return array 3 arrays: nodes, edges and user id mapping
  */
-function report_forumgraph_get_forum_nodes_edges($fid) {
+function report_forumgraph_get_forum_nodes_edges($fid, $from = null, $to = null) {
     global $DB;
     if ($forum = $DB->get_record('forum', array('id'=>$fid))) {
         if ($dids = $DB->get_records('forum_discussions', array('forum'=>$fid), '', 'id')) {
@@ -148,8 +148,24 @@ function report_forumgraph_get_forum_nodes_edges($fid) {
                 $discussion_ids[] = $d->id;
             }
             list($in_sql, $in_params) = $DB->get_in_or_equal($discussion_ids, SQL_PARAMS_NAMED);
+            // compute forum-wide bounds and totals (based on creation time)
+            $firstpost_ts = $DB->get_field_sql("SELECT MIN(created) FROM {forum_posts} WHERE discussion $in_sql", $in_params);
+            $lastpost_ts  = $DB->get_field_sql("SELECT MAX(created) FROM {forum_posts} WHERE discussion $in_sql", $in_params);
+            $total_posts = $DB->count_records_select('forum_posts', "discussion $in_sql", $in_params);
+
+            // build selection for posts, optionally constrained by provided timestamps
             $select = "discussion $in_sql";
-            if ($posts = $DB->get_records_select('forum_posts', $select, $in_params)) {
+            $params = $in_params;
+            if (!is_null($from)) {
+                $select .= " AND created >= :from";
+                $params['from'] = $from;
+            }
+            if (!is_null($to)) {
+                $select .= " AND created <= :to";
+                $params['to'] = $to;
+            }
+
+            if ($posts = $DB->get_records_select('forum_posts', $select, $params)) {
                 $context = context_course::instance($forum->course);
                 $nodes = array();
                 $edges = array();
@@ -200,7 +216,40 @@ function report_forumgraph_get_forum_nodes_edges($fid) {
                         }
                     }
                 }
-                $return = array($nodes, $edges, $uid_mapping);
+                // posts_in_range is the count of posts returned by the query
+                $posts_in_range = count($posts);
+                // compute additional range stats
+                $unique_authors_in_range = count($nodes);
+                $discussion_ids_in_range = array();
+                $discussion_has_reply = array();
+                $replies_in_range = 0;
+                foreach ($posts as $p) {
+                    $discussion_ids_in_range[] = $p->discussion;
+                    if (!empty($p->parent)) {
+                        $replies_in_range++;
+                        $discussion_has_reply[$p->discussion] = true;
+                    }
+                }
+                $unique_discussions_in_range = array_unique($discussion_ids_in_range);
+                $discussioncount_in_range = count($unique_discussions_in_range);
+                $unanswered_in_range = 0;
+                foreach ($unique_discussions_in_range as $did) {
+                    if (empty($discussion_has_reply[$did])) {
+                        $unanswered_in_range++;
+                    }
+                }
+
+                $meta = array(
+                    'first_post_ts' => (int)$firstpost_ts,
+                    'last_post_ts' => (int)$lastpost_ts,
+                    'total_posts' => (int)$total_posts,
+                    'posts_in_range' => (int)$posts_in_range,
+                    'unique_authors_in_range' => (int)$unique_authors_in_range,
+                    'discussioncount_in_range' => (int)$discussioncount_in_range,
+                    'replies_in_range' => (int)$replies_in_range,
+                    'unanswered_in_range' => (int)$unanswered_in_range,
+                );
+                $return = array($nodes, $edges, $uid_mapping, $meta);
                 return $return;
             }
         }
@@ -217,7 +266,7 @@ function report_forumgraph_get_forum_nodes_edges($fid) {
  * @param array $uid_mapping Array of user id mapping to index of nodes array
  * @return array 3 arrays: nodes, edges and user id mapping
  */
-function report_forumgraph_create_json($nodes, $edges, $uid_mapping) {
+function report_forumgraph_create_json($nodes, $edges, $uid_mapping, $meta = array()) {
     $lastnode = end($nodes);
     reset($nodes);
     $json = '{';
@@ -247,6 +296,17 @@ function report_forumgraph_create_json($nodes, $edges, $uid_mapping) {
         if ($idpair != $lastid) $json .= ',';
     }
     $json .= ']';
+    // append metadata if provided
+    if (!empty($meta) && is_array($meta)) {
+        $json .= ',';
+        $json .= '"meta":{';
+        $mkeys = array_keys($meta);
+        foreach ($mkeys as $i => $k) {
+            $json .= '"'.addslashes($k).'":'.(is_numeric($meta[$k]) ? (int)$meta[$k] : '"'.addslashes($meta[$k]).'"');
+            if ($i < count($mkeys) - 1) $json .= ',';
+        }
+        $json .= '}';
+    }
     $json .= '}';
     return $json;
 }

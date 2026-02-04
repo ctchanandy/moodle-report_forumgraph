@@ -98,8 +98,11 @@ $string['role_label'] = 'Role';
 $string['last_seen'] = 'Last seen:';
 $string['posts_last_7d'] = 'Posts (last 7d)';
 $string['avg_posts_per_user'] = 'Avg posts / user';
+$string['active_contributors'] = 'Active contributors';
+$string['unanswered_threads'] = 'Unanswered threads';
+$string['last_activity'] = 'Last activity';
 $string['avgreplies'] = 'Avg replies / discussion';
-$string['top_posters'] = 'Top posters';
+$string['top_posters'] = 'Top contributors';
 $string['show_names'] = 'Show Names';
 $string['hide_names'] = 'Hide Names';
 
@@ -109,3 +112,24 @@ $string['graph_help_zoom'] = 'Zoom: use the Zoom toggle, or hold Ctrl/Cmd and sc
 $string['graph_help_drag'] = 'Drag node: move a node to explore connections.';
 $string['graph_help_drag_release'] = 'Release: nodes resume layout movement.';
 $string['graph_help_fit'] = 'Fit to graph: double‑click the graph.';
+
+$string['date_range_start'] = 'Start date';
+$string['date_range_end'] = 'End date';
+$string['apply'] = 'Apply';
+$string['posts_in_range'] = 'Posts in range: {$a}';
+$string['percent_of_total'] = 'Percent of total posts: {$a}%';
+$string['range_stats_title'] = 'Selected period stats';
+
+$string['date_range_help'] = 'Limits: {$a}; used to include only posts created in this interval.';
+$string['last_7_days'] = 'Last 7d';
+$string['last_30_days'] = 'Last 30d';
+$string['show_all_posts'] = 'Reset range';
+$string['in_range'] = '{$a} in range ({$b}%)';
+$string['in_range_avg'] = 'in range: {$a}';
+$string['in_range_simple'] = 'in range: {$a}';
+
+$string['graph_touch_hint'] = 'Pinch to zoom, drag to pan, tap node for details';
+$string['wheel_zoom_off'] = 'Wheel zoom off';
+$string['wheel_zoom_on'] = 'Wheel zoom on';
+$string['range_summary'] = 'Showing posts from {$a->from} → {$a->to} ({$a->count} posts, {$a->percent}% of total)';
+$string['range_summary_all'] = 'Showing all posts ({$a->count} total; {$a->from} → {$a->to})';

@@ -427,6 +427,363 @@ define([], function () {
         } catch (e) {}
       }
 
+      // Date-range helpers for dynamic updates
+      function formatDateYMD(ts) {
+        if (!ts) return "";
+        var d = new Date(ts * 1000);
+        var y = d.getFullYear();
+        var m = String(d.getMonth() + 1).padStart(2, "0");
+        var day = String(d.getDate()).padStart(2, "0");
+        return y + "-" + m + "-" + day;
+      }
+
+      function updateRangeUIFromMeta(meta) {
+        try {
+          var fromInput = document.getElementById("fg_date_from");
+          var toInput = document.getElementById("fg_date_to");
+          if (meta.first_post_ts) {
+            var min = formatDateYMD(meta.first_post_ts);
+            if (fromInput) fromInput.min = min;
+            if (toInput) toInput.min = min;
+          }
+          if (meta.last_post_ts) {
+            var max = formatDateYMD(meta.last_post_ts);
+            if (fromInput) fromInput.max = max;
+            if (toInput) toInput.max = max;
+          }
+          // posts_in_range and percent_of_total are now shown inside stat cards; handled elsewhere
+        } catch (e) {
+          console.error("Failed to update range UI", e);
+        }
+      }
+
+      // Extend range UI update to refresh stat cards and help tooltip
+      function updateRangeUIExtras(meta) {
+        try {
+          // update help tooltip text
+          var help = document.getElementById("fg_date_help");
+          if (help && meta.first_post_ts && meta.last_post_ts) {
+            var rangeText =
+              formatDateYMD(meta.first_post_ts) +
+              " - " +
+              formatDateYMD(meta.last_post_ts);
+            try {
+              help.title = gs("date_range_help").replace("{$a}", rangeText);
+            } catch (e) {
+              help.title = rangeText;
+            }
+          }
+
+          // update stat cards' range sub-values only when a date range is active
+          var rangeActive = !!(forumgraph.from || forumgraph.to);
+          var elDiscRange = document.getElementById(
+            "fg_stat_discussions_range",
+          );
+          var elRepRange = document.getElementById("fg_stat_replies_range");
+          var elUsersRange = document.getElementById("fg_stat_users_range");
+          var elUnansweredRange = document.getElementById(
+            "fg_stat_unanswered_range",
+          );
+          if (rangeActive) {
+            var totals = forumgraph.totals || {};
+            var tplInRange = gs("in_range");
+            if (
+              typeof meta.discussioncount_in_range !== "undefined" &&
+              elDiscRange
+            ) {
+              var pctD =
+                totals.discussions > 0
+                  ? (
+                      (meta.discussioncount_in_range / totals.discussions) *
+                      100
+                    ).toFixed(2)
+                  : "0.00";
+              elDiscRange.innerText = tplInRange
+                .replace("{$a}", meta.discussioncount_in_range)
+                .replace("{$b}", pctD);
+            }
+            if (typeof meta.replies_in_range !== "undefined" && elRepRange) {
+              var pctR =
+                totals.replies > 0
+                  ? ((meta.replies_in_range / totals.replies) * 100).toFixed(2)
+                  : "0.00";
+              elRepRange.innerText = tplInRange
+                .replace("{$a}", meta.replies_in_range)
+                .replace("{$b}", pctR);
+            }
+            if (
+              typeof meta.unique_authors_in_range !== "undefined" &&
+              elUsersRange
+            ) {
+              var pctU =
+                totals.users > 0
+                  ? (
+                      (meta.unique_authors_in_range / totals.users) *
+                      100
+                    ).toFixed(2)
+                  : "0.00";
+              elUsersRange.innerText = tplInRange
+                .replace("{$a}", meta.unique_authors_in_range)
+                .replace("{$b}", pctU);
+            }
+            if (
+              typeof meta.unanswered_in_range !== "undefined" &&
+              elUnansweredRange
+            ) {
+              var tplSimple = gs("in_range_simple");
+              elUnansweredRange.innerText = tplSimple.replace(
+                "{$a}",
+                meta.unanswered_in_range,
+              );
+            }
+          } else {
+            if (elDiscRange) elDiscRange.innerText = "";
+            if (elRepRange) elRepRange.innerText = "";
+            if (elUsersRange) elUsersRange.innerText = "";
+            if (elUnansweredRange) elUnansweredRange.innerText = "";
+          }
+          if (
+            typeof meta.replies_in_range !== "undefined" &&
+            typeof meta.discussioncount_in_range !== "undefined"
+          ) {
+            var elAvgRR = document.getElementById("fg_stat_avg_replies_range");
+            if (elAvgRR) {
+              if (rangeActive) {
+                var v2 =
+                  meta.discussioncount_in_range > 0
+                    ? (
+                        meta.replies_in_range / meta.discussioncount_in_range
+                      ).toFixed(2)
+                    : "0.00";
+                var tplAvg2 = gs("in_range_avg");
+                elAvgRR.innerText = tplAvg2.replace("{$a}", v2);
+              } else {
+                elAvgRR.innerText = "";
+              }
+            }
+          }
+
+          // show/hide the Show All button depending on whether a range is active
+          var showAllBtn = document.getElementById("fg_show_all");
+          if (showAllBtn) {
+            if (forumgraph.from || forumgraph.to)
+              showAllBtn.style.display = "inline-block";
+            else showAllBtn.style.display = "none";
+          }
+          // update one-line summary above stats
+          try {
+            var summaryEl = document.getElementById("fg_range_summary");
+            if (summaryEl) {
+              if (forumgraph.from || forumgraph.to) {
+                // compose localized template: {$a->from}, {$a->to}, {$a->count}, {$a->percent}
+                var tpl = gs("range_summary");
+                var fromTs = forumgraph.from || meta.first_post_ts || null;
+                var toTs = forumgraph.to || meta.last_post_ts || null;
+                var fromText = fromTs ? formatDateYMD(fromTs) : "";
+                var toText = toTs ? formatDateYMD(toTs) : "";
+                var count =
+                  typeof meta.posts_in_range !== "undefined"
+                    ? meta.posts_in_range
+                    : 0;
+                var total = (forumgraph.totals && forumgraph.totals.posts) || 0;
+                var pct =
+                  total > 0 ? ((count / total) * 100).toFixed(2) : "0.00";
+                var txt = tpl
+                  .replace("{$a->from}", fromText)
+                  .replace("{$a->to}", toText)
+                  .replace("{$a->count}", count)
+                  .replace("{$a->percent}", pct);
+                summaryEl.textContent = txt;
+                summaryEl.style.display = "block";
+              } else {
+                // show overall summary when no range active using meta or fallback totals
+                try {
+                  var tplAll = gs("range_summary_all");
+                  var fromAll =
+                    meta && meta.first_post_ts
+                      ? formatDateYMD(meta.first_post_ts)
+                      : "";
+                  var toAll =
+                    meta && meta.last_post_ts
+                      ? formatDateYMD(meta.last_post_ts)
+                      : "";
+                  var countAll =
+                    meta && typeof meta.total_posts !== "undefined"
+                      ? meta.total_posts
+                      : forumgraph.totals && forumgraph.totals.posts
+                        ? forumgraph.totals.posts
+                        : 0;
+                  var txtAll = tplAll
+                    .replace("{$a->count}", countAll)
+                    .replace("{$a->from}", fromAll)
+                    .replace("{$a->to}", toAll);
+                  summaryEl.textContent = txtAll;
+                  summaryEl.style.display = "block";
+                } catch (e) {
+                  summaryEl.style.display = "none";
+                }
+              }
+            }
+          } catch (e) {
+            console.error("Failed to update range summary", e);
+          }
+        } catch (e) {
+          console.error("Failed to update extra range UI", e);
+        }
+      }
+
+      function setupDateRangeControls() {
+        try {
+          var btn = document.getElementById("fg_apply_range");
+          if (!btn) return;
+          try {
+            if (btn.dataset && btn.dataset.fgAttached) return;
+          } catch (e) {}
+          btn.addEventListener("click", function (ev) {
+            ev.preventDefault();
+            var f = document.getElementById("fg_date_from");
+            var t = document.getElementById("fg_date_to");
+            var fv = f && f.value ? f.value : null;
+            var tv = t && t.value ? t.value : null;
+            forumgraph.from = fv
+              ? Math.floor(new Date(fv + "T00:00:00").getTime() / 1000)
+              : null;
+            forumgraph.to = tv
+              ? Math.floor(new Date(tv + "T23:59:59").getTime() / 1000)
+              : null;
+            // update URL params for bookmarking without reload
+            try {
+              var url = new URL(window.location.href);
+              if (fv) url.searchParams.set("from", fv);
+              else url.searchParams.delete("from");
+              if (tv) url.searchParams.set("to", tv);
+              else url.searchParams.delete("to");
+              history.replaceState(null, "", url.toString());
+            } catch (e) {}
+            // re-render graph with new range
+            try {
+              // remove existing svg to avoid duplicates; d3Graph will recreate
+              var c = document.getElementById("forumgraphsvg");
+              if (c) d3.select(c).selectAll("svg").remove();
+            } catch (e) {}
+            // call d3Graph to rebuild using forumgraph.from/forumgraph.to
+            try {
+              d3Graph();
+            } catch (e) {
+              console.error("Failed to reload graph", e);
+            }
+          });
+          try {
+            if (btn.dataset) btn.dataset.fgAttached = "1";
+          } catch (e) {}
+          // Show All button clears the date range and reloads graph
+          try {
+            var showAll = document.getElementById("fg_show_all");
+            if (showAll) {
+              if (showAll.dataset && showAll.dataset.fgAttached) {
+                // already attached
+              } else {
+                showAll.addEventListener("click", function (ev) {
+                  ev.preventDefault();
+                  try {
+                    var f = document.getElementById("fg_date_from");
+                    var t = document.getElementById("fg_date_to");
+                    // reset inputs to their min/max bounds (full range)
+                    if (f) {
+                      try {
+                        if (f.min) f.value = f.min;
+                        else f.value = "";
+                      } catch (e) {
+                        f.value = "";
+                      }
+                    }
+                    if (t) {
+                      try {
+                        if (t.max) t.value = t.max;
+                        else t.value = "";
+                      } catch (e) {
+                        t.value = "";
+                      }
+                    }
+                    // clear internal filtering so the server returns the full dataset
+                    forumgraph.from = null;
+                    forumgraph.to = null;
+                    try {
+                      var url = new URL(window.location.href);
+                      url.searchParams.delete("from");
+                      url.searchParams.delete("to");
+                      history.replaceState(null, "", url.toString());
+                    } catch (e) {}
+                    var c = document.getElementById("forumgraphsvg");
+                    if (c) d3.select(c).selectAll("svg").remove();
+                    d3Graph();
+                  } catch (e) {}
+                });
+                try {
+                  showAll.dataset.fgAttached = "1";
+                } catch (e) {}
+              }
+            }
+          } catch (e) {}
+          // Quick preset buttons: Last 7d / Last 30d
+          try {
+            var preset7 = document.getElementById("fg_preset_7");
+            var preset30 = document.getElementById("fg_preset_30");
+            function localYMD(d) {
+              var y = d.getFullYear();
+              var m = String(d.getMonth() + 1).padStart(2, "0");
+              var day = String(d.getDate()).padStart(2, "0");
+              return y + "-" + m + "-" + day;
+            }
+            if (preset7 && !(preset7.dataset && preset7.dataset.fgAttached)) {
+              preset7.addEventListener("click", function (ev) {
+                ev.preventDefault();
+                try {
+                  var f = document.getElementById("fg_date_from");
+                  var t = document.getElementById("fg_date_to");
+                  var today = new Date();
+                  var to = localYMD(today);
+                  var from = new Date(today);
+                  from.setDate(today.getDate() - 6);
+                  var froms = localYMD(from);
+                  if (f) f.value = froms;
+                  if (t) t.value = to;
+                  var apply = document.getElementById("fg_apply_range");
+                  if (apply) apply.click();
+                } catch (e) {}
+              });
+              try {
+                preset7.dataset.fgAttached = "1";
+              } catch (e) {}
+            }
+            if (
+              preset30 &&
+              !(preset30.dataset && preset30.dataset.fgAttached)
+            ) {
+              preset30.addEventListener("click", function (ev) {
+                ev.preventDefault();
+                try {
+                  var f = document.getElementById("fg_date_from");
+                  var t = document.getElementById("fg_date_to");
+                  var today = new Date();
+                  var to = localYMD(today);
+                  var from = new Date(today);
+                  from.setDate(today.getDate() - 29);
+                  var froms = localYMD(from);
+                  if (f) f.value = froms;
+                  if (t) t.value = to;
+                  var apply = document.getElementById("fg_apply_range");
+                  if (apply) apply.click();
+                } catch (e) {}
+              });
+              try {
+                preset30.dataset.fgAttached = "1";
+              } catch (e) {}
+            }
+          } catch (e) {}
+        } catch (e) {}
+      }
+
       // watch for container size changes and update
       if (window.ResizeObserver && containerEl) {
         try {
@@ -466,7 +823,7 @@ define([], function () {
             '<button id="forumgraph-zoom-toggle" type="button" class="fg-toggle" aria-pressed="false" title="' +
             gs("zoom_toggle_title") +
             '"><span class="fg-zoom-indicator" aria-hidden="true"></span>' +
-            gs("zoom_off") +
+            gs("wheel_zoom_off") +
             "</button>" +
             '<button id="forumgraph-download-png" type="button" title="' +
             gs("download_png") +
@@ -486,7 +843,7 @@ define([], function () {
               // update visible text label while keeping the indicator span
               zbtn.innerHTML =
                 '<span class="fg-zoom-indicator" aria-hidden="true"></span>' +
-                (on ? gs("zoom_on") : gs("zoom_off"));
+                (on ? gs("wheel_zoom_on") : gs("wheel_zoom_off"));
             }
             zbtn.addEventListener("click", function () {
               wheelZoomEnabled = !wheelZoomEnabled;
@@ -494,6 +851,19 @@ define([], function () {
             });
             // initialize label text
             updateZoomButtonState(false);
+            // show touch hint only on touch-capable devices
+            try {
+              var touchHintEl = document.getElementById("fg_touch_hint");
+              var isTouch =
+                "ontouchstart" in window ||
+                (navigator.maxTouchPoints && navigator.maxTouchPoints > 0) ||
+                (navigator.msMaxTouchPoints && navigator.msMaxTouchPoints > 0);
+              if (touchHintEl) {
+                touchHintEl.style.display = isTouch ? "block" : "none";
+              }
+            } catch (e) {
+              /* ignore */
+            }
           }
 
           document
@@ -734,8 +1104,22 @@ define([], function () {
         console.warn("Custom wheel handler failed", err);
       }
 
-      d3.json("getjson.php?forum=" + forumgraph.forum)
+      var dataUrl = "getjson.php?forum=" + forumgraph.forum;
+      if (forumgraph.from)
+        dataUrl += "&from=" + encodeURIComponent(forumgraph.from);
+      if (forumgraph.to) dataUrl += "&to=" + encodeURIComponent(forumgraph.to);
+      d3.json(dataUrl)
         .then(function (graph) {
+          // update UI controls/stats from server-provided metadata when available
+          if (graph && graph.meta) {
+            try {
+              updateRangeUIFromMeta(graph.meta);
+            } catch (e) {}
+            try {
+              updateRangeUIExtras(graph.meta);
+            } catch (e) {}
+          }
+
           var linkedByIndex = {};
           graph.links.forEach(function (d) {
             linkedByIndex[d.source + "," + d.target] = 1;
@@ -893,14 +1277,26 @@ define([], function () {
             });
           }
           updateLabelPosition();
+          // ensure date-range controls are wired for in-page updates
+          try {
+            setupDateRangeControls();
+          } catch (e) {}
 
           // Sidebar controls
           (function createSidebar() {
             var container = document.getElementById("forumgraphsvg");
             if (!container) return;
-            // ensure wrapper exists and move container into it so sidebar appears beside graph
+            // remove any stale sidebars left from previous renders
+            try {
+              var olds = document.querySelectorAll(".forumgraph-sidebar");
+              for (var oi = 0; oi < olds.length; oi++) {
+                var o = olds[oi];
+                if (o && o.parentNode) o.parentNode.removeChild(o);
+              }
+            } catch (e) {}
+            // ensure a single wrapper exists and move container into it so sidebar appears beside graph
+            var wrapper = document.querySelector(".forumgraph-wrapper");
             var parent = container.parentNode;
-            var wrapper = parent.querySelector(".forumgraph-wrapper");
             if (!wrapper) {
               wrapper = document.createElement("div");
               wrapper.className = "forumgraph-wrapper";
@@ -911,8 +1307,6 @@ define([], function () {
               if (container.parentNode !== wrapper)
                 wrapper.appendChild(container);
             }
-            var existing = wrapper.querySelector(".forumgraph-sidebar");
-            if (existing) existing.parentNode.removeChild(existing);
             var sb = document.createElement("aside");
             sb.className = "forumgraph-sidebar";
             sb.innerHTML =
@@ -1812,8 +2206,10 @@ define([], function () {
             var crect = ctrl.getBoundingClientRect();
             var svgRect = svg.node().getBoundingClientRect();
             // add extra padding only when controls visually overlap the svg area
-            var overlapsHoriz = crect.left < svgRect.right && crect.right > svgRect.left;
-            var overlapsVert = crect.top < svgRect.bottom && crect.bottom > svgRect.top;
+            var overlapsHoriz =
+              crect.left < svgRect.right && crect.right > svgRect.left;
+            var overlapsVert =
+              crect.top < svgRect.bottom && crect.bottom > svgRect.top;
             if (overlapsHoriz && overlapsVert) {
               extraPadRight = Math.ceil(crect.width + 12);
               extraPadTop = Math.ceil(crect.height + 8);
@@ -1869,11 +2265,30 @@ define([], function () {
   }
 
   api = {
-    init: function (forum, modid, courseid, wwwroot) {
+    init: function (
+      forum,
+      modid,
+      courseid,
+      wwwroot,
+      from,
+      to,
+      discussions,
+      replies,
+      users,
+      total_posts,
+    ) {
       forumgraph.forum = forum;
       forumgraph.modid = modid;
       forumgraph.courseid = courseid;
       forumgraph.wwwroot = wwwroot;
+      forumgraph.from = from ? parseInt(from, 10) : null;
+      forumgraph.to = to ? parseInt(to, 10) : null;
+      forumgraph.totals = {
+        discussions: discussions ? parseInt(discussions, 10) : 0,
+        replies: replies ? parseInt(replies, 10) : 0,
+        users: users ? parseInt(users, 10) : 0,
+        posts: total_posts ? parseInt(total_posts, 10) : 0,
+      };
       if (forumgraph.courseid != 0) {
         loadForumMenu(forumgraph.courseid);
       }

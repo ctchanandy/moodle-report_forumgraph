@@ -98,8 +98,11 @@ $string['role_label'] = '角色';
 $string['last_seen'] = '最後存取：';
 $string['posts_last_7d'] = '近 7 天貼文數';
 $string['avg_posts_per_user'] = '每位用戶平均貼文';
+$string['active_contributors'] = '活躍貢獻者';
+$string['unanswered_threads'] = '未回覆討論串';
+$string['last_activity'] = '最近活動';
 $string['avgreplies'] = '每討論平均回覆';
-$string['top_posters'] = '發文最多';
+$string['top_posters'] = '貢獻最多的用戶';
 $string['show_names'] = '顯示姓名';
 $string['hide_names'] = '隱藏姓名';
 
@@ -109,3 +112,24 @@ $string['graph_help_zoom'] = '縮放：使用縮放切換或按住 Ctrl/Cmd 加�
 $string['graph_help_drag'] = '拖曳節點：移動節點以觀察連結。';
 $string['graph_help_drag_release'] = '放開後：節點會繼續自動佈局。';
 $string['graph_help_fit'] = '適合視窗：在圖表上雙擊。';
+
+$string['date_range_start'] = '開始日期';
+$string['date_range_end'] = '結束日期';
+$string['apply'] = '套用';
+$string['posts_in_range'] = '期間內貼文：{$a}';
+$string['percent_of_total'] = '佔總貼文百分比：{$a}%';
+$string['range_stats_title'] = '所選期間統計';
+
+$string['date_range_help'] = '範圍：{$a}；僅納入此期間建立的貼文。';
+$string['last_7_days'] = '近 7 天';
+$string['last_30_days'] = '近 30 天';
+$string['show_all_posts'] = '重設範圍';
+$string['in_range'] = '{$a} 範圍內 ({$b}%)';
+$string['in_range_avg'] = '範圍內：{$a}';
+$string['in_range_simple'] = '範圍內：{$a}';
+
+$string['graph_touch_hint'] = '雙指縮放、拖移以平移，點擊節點查看詳細資料';
+$string['wheel_zoom_off'] = '滾輪縮放已關閉';
+$string['wheel_zoom_on'] = '滾輪縮放已開啟';
+$string['range_summary'] = '顯示貼文：{$a->from} → {$a->to}（{$a->count} 篇，佔總數 {$a->percent}%）';
+$string['range_summary_all'] = '顯示全部貼文（共 {$a->count} 篇；{$a->from} → {$a->to}）';

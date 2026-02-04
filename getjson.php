@@ -28,6 +28,11 @@ require_once($CFG->dirroot.'/report/forumgraph/lib.php');
 require_login();
 
 $forum = required_param('forum', PARAM_INT);
+// optional date range (unix timestamps). If 0 or missing, treat as no bound.
+$from = optional_param('from', 0, PARAM_INT);
+$to   = optional_param('to', 0, PARAM_INT);
+$from = $from ? $from : null;
+$to = $to ? $to : null;
 
 global $DB;
 // Check forum exists and user has capability in the course context.
@@ -35,8 +40,17 @@ $forumrec = $DB->get_record('forum', array('id' => $forum), '*', MUST_EXIST);
 $context = context_course::instance($forumrec->course);
 require_capability('report/forumgraph:view', $context);
 
-list($nodes, $edges, $uid_mapping) = report_forumgraph_get_forum_nodes_edges($forum);
-$json = report_forumgraph_create_json($nodes, $edges, $uid_mapping);
+// Ensure from/to are sensible
+if ($from !== null && $to !== null && $from > $to) {
+	// swap
+	$tmp = $from;
+	$from = $to;
+	$to = $tmp;
+}
+
+// Retrieve nodes/edges and metadata for the optional time range
+list($nodes, $edges, $uid_mapping, $meta) = report_forumgraph_get_forum_nodes_edges($forum, $from, $to);
+$json = report_forumgraph_create_json($nodes, $edges, $uid_mapping, $meta);
 
 header('Content-Type: application/json; charset=utf-8');
 echo $json;

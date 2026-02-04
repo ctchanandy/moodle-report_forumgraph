@@ -203,6 +203,65 @@ ol#topposters {
   display: flex;
   gap: 6px;
 }
+/* Range controls (inline, matching sidebar controls) */
+.fg-range-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 12px 0;
+  flex-wrap: wrap;
+}
+.fg-range-controls label {
+  font-size: 13px;
+  color: #333;
+  margin-right: 6px;
+}
+
+/* small spacing between Apply and Reset buttons */
+.fg-range-controls #fg_show_all {
+  margin-left: 8px;
+}
+/* small spacing for preset buttons (Last 7/30d) to match Reset spacing */
+.fg-range-controls #fg_preset_7,
+.fg-range-controls #fg_preset_30 {
+  margin-left: 8px;
+}
+.fg-range-controls input[type="date"] {
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid #d0d0d0;
+  background: #fff;
+  height: 34px;
+}
+.fg-range-controls button {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #d0d0d0;
+  background: #f7f7f7;
+  cursor: pointer;
+}
+.fg-range-controls button:hover {
+  background: #f0f0f0;
+}
+.fg-date-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid #cfd8dc;
+  background: #f7f7f7;
+  color: #555;
+  font-weight: 600;
+}
+
+/* small sub-value inside stat cards for selected-range numbers */
+.fg-stat-card .fg-stat-range {
+  font-size: 12px;
+  color: #666;
+  margin-top: 6px;
+}
 .forumgraph-controls button {
   background: #3498db;
   color: #fff;
@@ -310,6 +369,26 @@ ol#topposters {
   margin: 3px 0;
 }
 
+/* Touch hint and desktop zoom badge */
+.fg-touch-hint {
+  display: none; /* visible only when explicitly enabled by JS */
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  z-index: 10003;
+  max-width: 90%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 /* Stats card styles (extracted from inline styles) */
 #forumgraphstats .fg-stats-wrapper {
   display: flex;
@@ -318,7 +397,7 @@ ol#topposters {
   align-items: flex-start;
 }
 .fg-stat-card {
-  min-width: 140px;
+  min-width: 120px;
   padding: 10px;
   background: #f7f7f7;
   border-radius: 6px;
@@ -339,8 +418,8 @@ ol#topposters {
   margin-top: 4px;
 }
 .fg-stat-card.fg-stat-topposters {
-  flex: 1 1 260px;
-  min-width: 220px;
+  flex: 1 1 220px;
+  min-width: 200px;
   background: #fff;
   border: 1px solid #eee;
 }
@@ -356,6 +435,25 @@ ol#topposters {
   text-align: left;
 }
 
+.fg-stat-card.fg-stat-topposters #topposters {
+  padding-left: 18px;
+}
+
+.fg-stat-card.fg-stat-topposters .fg-stat-content li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fg-topcontrib-name {
+  display: inline-block;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
 @media (max-width: 720px) {
   #forumgraphstats .fg-stats-wrapper {
     flex-direction: column;
@@ -363,4 +461,16 @@ ol#topposters {
   .forumgraph-wrapper {
     flex-direction: column;
   }
+}
+
+/* one-line summary shown above stat cards when a date range is active */
+.fg-range-summary {
+  display: block;
+  margin: 8px 0 6px 0;
+  padding: 8px 10px;
+  background: #f0f6fb;
+  border: 1px solid #e1eff9;
+  color: #0b3b57;
+  border-radius: 6px;
+  font-size: 13px;
 }
