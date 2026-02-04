@@ -77,6 +77,22 @@ if ($course && $forum) {
     $cm = get_coursemodule_from_instance("forum", $forum, $course);
 }
 
+// Trigger view event for logging (course context). Include forum id when present.
+try {
+    if (class_exists('\report_forumgraph\event\report_viewed')) {
+        $event = \report_forumgraph\event\report_viewed::create(array(
+            'context' => $context,
+            'objectid' => $course_obj->id,
+            'other' => array('forum' => $forum)
+        ));
+        // add snapshot so reports can link to course record
+        $event->add_record_snapshot('course', $course_obj);
+        $event->trigger();
+    }
+} catch (Exception $e) {
+    debugging('Failed to trigger report_forumgraph view event: '.$e->getMessage(), DEBUG_DEVELOPER);
+}
+
 
 // forum menu
 $forumoptions = report_forumgraph_get_forumoptions($course);

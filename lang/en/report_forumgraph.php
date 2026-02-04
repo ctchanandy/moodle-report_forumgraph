@@ -133,3 +133,5 @@ $string['wheel_zoom_off'] = 'Wheel zoom off';
 $string['wheel_zoom_on'] = 'Wheel zoom on';
 $string['range_summary'] = 'Showing posts from {$a->from} → {$a->to} ({$a->count} posts, {$a->percent}% of total)';
 $string['range_summary_all'] = 'Showing all posts ({$a->count} total; {$a->from} → {$a->to})';
+
+$string['eventreportviewed'] = 'Forum Graph report viewed';
