@@ -324,3 +324,24 @@ function report_forumgraph_extend_navigation_course($navigation, $course, $conte
         $navigation->add(get_string('pluginname', 'report_forumgraph'), $url, navigation_node::TYPE_SETTING, null, null, new pix_icon('i/report', ''));
     }
 }
+
+/**
+ * Add report link into activity (module) settings navigation.
+ *
+ * @param navigation_node $navigation The module settings node to extend
+ * @param cm_info $cm The course module
+ */
+function report_forumgraph_extend_navigation_module(navigation_node $navigation, cm_info $cm) {
+    if (empty($cm->modname) || $cm->modname !== 'forum') {
+        return;
+    }
+    $context = context_module::instance($cm->id);
+    if (!has_capability('report/forumgraph:view', $context)) {
+        return;
+    }
+    $url = new moodle_url('/report/forumgraph/index.php', array(
+        'course' => $cm->course,
+        'forum' => $cm->instance,
+    ));
+    $navigation->add(get_string('forumgraph', 'report_forumgraph'), $url, navigation_node::TYPE_SETTING, null, null, new pix_icon('i/report', ''));
+}

@@ -25,7 +25,7 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-$plugin->version   = 2026013000;        // The current plugin version (Date: YYYYMMDDXX)
+$plugin->version   = 2026020400;        // The current plugin version (Date: YYYYMMDDXX)
 $plugin->requires  = 2024042200;        // Requires Moodle 5.0 or above
 $plugin->component = 'report_forumgraph'; // Full name of the plugin (used for diagnostics)
 
