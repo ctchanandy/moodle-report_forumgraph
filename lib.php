@@ -202,6 +202,10 @@ function report_forumgraph_get_forum_nodes_edges($fid, $from = null, $to = null)
                     
                     // edges array
                     if ($post->parent) {
+                        if (!isset($posts[$post->parent])) {
+                            // Parent post is outside the filtered set; skip to avoid invalid mapping.
+                            continue;
+                        }
                         $parent = $posts[$post->parent];
                         if ($post->userid != $parent->userid) {
                             if (!isset($edges[$post->userid."_".$parent->userid]) && !isset($edges[$parent->userid."_".$post->userid])) {
@@ -285,16 +289,19 @@ function report_forumgraph_create_json($nodes, $edges, $uid_mapping, $meta = arr
     }
     $json .= '],';
     
-    $edges_keys = array_keys($edges);
-    $lastid = end($edges_keys);
     $json .= '"links":[';
+    $edgeitems = array();
     foreach ($edges as $idpair=>$value) {
         $pair = explode('_', $idpair);
         $source = (int)$pair[0];
         $target = (int)$pair[1];
-        $json .= '{"source":'.$uid_mapping[$source].', "target":'.$uid_mapping[$target].', "value":'.$value.'}';
-        if ($idpair != $lastid) $json .= ',';
+        if (!isset($uid_mapping[$source]) || !isset($uid_mapping[$target])) {
+            // skip edges missing valid node mappings to avoid invalid JSON
+            continue;
+        }
+        $edgeitems[] = '{"source":'.$uid_mapping[$source].', "target":'.$uid_mapping[$target].', "value":'.$value.'}';
     }
+    $json .= implode(',', $edgeitems);
     $json .= ']';
     // append metadata if provided
     if (!empty($meta) && is_array($meta)) {
