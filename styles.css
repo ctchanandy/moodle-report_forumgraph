@@ -262,6 +262,12 @@ ol#topposters {
   color: #666;
   margin-top: 6px;
 }
+.fg-stat-card .fg-stat-label {
+  color: #333;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 6px;
+}
 .forumgraph-controls button {
   background: #3498db;
   color: #fff;
@@ -416,6 +422,11 @@ ol#topposters {
   color: #666;
   font-size: 12px;
   margin-top: 4px;
+}
+.fg-stat-card .fg-stat-range {
+  font-size: 12px;
+  color: #888;
+  margin-top: 6px;
 }
 .fg-stat-card.fg-stat-topposters {
   flex: 1 1 220px;

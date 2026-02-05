@@ -227,7 +227,8 @@ if (!empty($course) && !empty($forum)) {
         array('forum' => $forum_obj->id)
     );
     $avg_replies = round($replycount / max(1, $discussioncount), 2);
-    $lastpost_ts = $DB->get_field_sql("SELECT MAX(modified) FROM {forum_posts} WHERE discussion $in_sql", $in_params);
+    // Use creation timestamp for last post date so it matches the data used by the JSON meta.
+    $lastpost_ts = $DB->get_field_sql("SELECT MAX(created) FROM {forum_posts} WHERE discussion $in_sql", $in_params);
     $lastpost = $lastpost_ts ? userdate($lastpost_ts, get_string('strftimedateshort', 'langconfig')) : 'n/a';
 
         // compute forum-wide first post timestamp for date picker bounds
@@ -274,9 +275,7 @@ if (!empty($course) && !empty($forum)) {
     echo '<input id="fg_date_from" name="from" type="date" min="'.htmlspecialchars($firstpost).'" max="'.htmlspecialchars($lastpost_date).'" value="'. $from_val .'"> ';
     echo '<label for="fg_date_to" title="'.safe_get_string('date_range_end','report_forumgraph').'">'.htmlspecialchars(get_string('date_range_end','report_forumgraph')).'</label> ';
     echo '<input id="fg_date_to" name="to" type="date" min="'.htmlspecialchars($firstpost).'" max="'.htmlspecialchars($lastpost_date).'" value="'. $to_val .'"> ';
-    // help icon with min/max in tooltip
-    $range_help_text = get_string('date_range_help','report_forumgraph', $firstpost . ' - ' . $lastpost_date);
-    echo '<span id="fg_date_help" class="fg-date-help" title="'.htmlspecialchars($range_help_text).'">?</span> ';
+    // help icon removed (range summary above stat cards provides the current range)
     echo '<button id="fg_apply_range" type="button">'.get_string('apply','report_forumgraph').'</button>';
     // quick preset buttons (only show if there is data in these recent windows)
     if ($has_last7) {

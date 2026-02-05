@@ -124,9 +124,9 @@ $string['date_range_help'] = '範圍：{$a}；僅納入此期間建立的貼文�
 $string['last_7_days'] = '近 7 天';
 $string['last_30_days'] = '近 30 天';
 $string['show_all_posts'] = '重設範圍';
-$string['in_range'] = '{$a} 範圍內 ({$b}%)';
-$string['in_range_avg'] = '範圍內：{$a}';
-$string['in_range_simple'] = '範圍內：{$a}';
+$string['in_range'] = '在所選期間內：{$a}（{$b}%）';
+$string['in_range_avg'] = '在所選期間內：{$a}';
+$string['in_range_simple'] = '在所選期間內：{$a}';
 
 $string['graph_touch_hint'] = '雙指縮放、拖移以平移，點擊節點查看詳細資料';
 $string['wheel_zoom_off'] = '滾輪縮放已關閉';
